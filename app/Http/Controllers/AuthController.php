@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -37,9 +38,16 @@ class AuthController extends Controller
                 'password' => 'required|string|min:6',
             ]);
 
+        $data['password'] = Hash::make($data['password']);
         $user = User::create($data);
-        $token = Auth::login($user);
-        return $this->respondWithToken($token);
+
+        return response()->json([
+            'message' => 'Usuario registrado correctamente','user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+        ], 201);
     }
     /**
      * Usuario autenticado
