@@ -14,3 +14,14 @@ Route::group([
     Route::get('userProfile', [AuthController::class, 'me'])->middleware('auth:api');
 });
 
+Route::controller(\App\Http\Controllers\PetitionController::class)->group(function () {
+    Route::get('peticiones', 'index');
+    Route::get('mispeticiones', 'listmine');
+    Route::get('peticiones/{id}', 'show');
+    Route::delete('peticiones/{id}', 'delete');
+    Route::put('peticiones/firmar/{id}', 'firmar');
+    Route::put('peticiones/{id}', 'update');
+    Route::put('peticiones/estado/{id}', 'cambiarEstado');
+    Route::post('peticiones', 'store');
+});
+
