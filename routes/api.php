@@ -3,17 +3,17 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::group([
-    'middleware' => 'api',
-    'prefix' => 'auth',
-], function (){
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api');
-    Route::post('refresh', [AuthController::class, 'refresh'])->middleware('auth:api');
-    Route::get('userProfile', [AuthController::class, 'me'])->middleware('auth:api');
+// Rutas para el JWT
+Route::post('register', [AuthController::class, 'register']);
+Route::post('login', [AuthController::class, 'login']);
+Route::post('refresh', [AuthController::class, 'refresh']);
+
+Route::middleware('auth:api')->group(function (){
+    Route::post('logout', [AuthController::class, 'logout']);
+    Route::get('userProfile', [AuthController::class, 'me']);
 });
 
+// Rutas para las peticiones
 Route::controller(\App\Http\Controllers\PetitionController::class)->group(function () {
     Route::get('peticiones', 'index');
     Route::get('mispeticiones', 'listmine');
