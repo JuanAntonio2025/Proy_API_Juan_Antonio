@@ -1,27 +1,33 @@
 <?php
 
-use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PetitionController;
 
-// Rutas para el JWT
-Route::post('register', [AuthController::class, 'register']);
+// Rutas Públicas (Login y Registro)
 Route::post('login', [AuthController::class, 'login']);
-Route::post('refresh', [AuthController::class, 'refresh']);
+Route::post('register', [AuthController::class, 'register']);
 
-Route::middleware('auth:api')->group(function (){
+// Rutas Protegidas (Requieren Token válido)
+// CAMBIO IMPORTANTE: Cambia 'middleware('api')' por 'middleware('auth:api')'
+Route::middleware('auth:api')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
-    Route::get('userProfile', [AuthController::class, 'me']);
+    Route::get('me', [AuthController::class, 'me']);
 });
 
-// Rutas para las peticiones
-Route::controller(\App\Http\Controllers\PetitionController::class)->group(function () {
-    Route::get('peticiones', 'index');
-    Route::get('mispeticiones', 'listmine');
-    Route::get('peticiones/{id}', 'show');
-    Route::delete('peticiones/{id}', 'delete');
-    Route::put('peticiones/firmar/{id}', 'firmar');
-    Route::put('peticiones/{id}', 'update');
-    Route::put('peticiones/estado/{id}', 'cambiarEstado');
-    Route::post('peticiones', 'store');
+// Ruta de Refresh (Fuera del auth:api estricto)
+// Laravel intentará leer el token del header, y si es válido (aunque expirado), lo refrescará.
+Route::middleware('api')->post('refresh', [AuthController::class, 'refresh']);
+
+Route::get('peticiones', [PetitionController::class,'index']);
+Route::get('peticiones/{id}', [PetitionController::class,'show']);
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('mispeticiones', [PetitionController::class, 'listmine']);
+    Route::delete('peticiones/{id}', [PetitionController::class,'destroy']);
+    Route::put('peticiones/firmar/{id}', [PetitionController::class,'firmar']);
+    Route::put('peticiones/{id}', [PetitionController::class,'update']);
+    Route::put('peticiones/estado/{id}', [PetitionController::class,'cambiarEstado']);
+    Route::post('peticiones', [PetitionController::class,'store']);
 });
 
