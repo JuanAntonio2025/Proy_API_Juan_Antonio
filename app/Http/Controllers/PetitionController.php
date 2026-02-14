@@ -153,10 +153,10 @@ class PetitionController extends Controller
                 'category_id' => $validated['category_id'],
             ]);
 
-            // 📷 Reemplaza imagen
+            // Reemplaza imagen
             if ($request->hasFile('file')) {
 
-                // ❌ Borra imagen anterior (opcional pero recomendable)
+                // Borra imagen anterior
                 $petition->files()->delete();
 
                 $uploaded = $request->file('file');
@@ -219,30 +219,6 @@ class PetitionController extends Controller
             return $this->sendError('Error al eliminar', $e->getMessage(), 500);
         }
 
-    }
-
-    public function fileUpload(Request $request, $peticion_id)
-    {
-        $validator = Validator::make($request->all(), [
-            'file' => 'required|file|max:4096',
-        ]);
-        if ($validator->fails()) {
-            return $this->sendError('Archivo no válido', $validator->errors(), 422);
-        }
-
-        try {
-            $file = $request->file('file');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('fotos', $filename, 'public');
-            $fileModel = File::create([
-                'petition_id' => $peticion_id,
-                'name' => $filename,
-                'file_path' => $path
-            ]);
-            return $this->sendResponse($fileModel, 'Archivo subido con éxito');
-        } catch (\Exception $e) {
-            return $this->sendError('Error al subir archivo', $e->getMessage(), 500);
-        }
     }
 
     public function peticionesFirmadas(Request $request)
