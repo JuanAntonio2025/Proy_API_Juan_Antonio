@@ -117,28 +117,80 @@ class PetitionController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            $peticion = Petition::with(['user', 'category', 'files'])->findOrFail($id);
-            return $this->sendResponse($peticion, 'Petición encontrada');
+            $petition = Petition::with(['user', 'category', 'files'])->findOrFail($id);
+            return response()->json([
+                'success' => true,
+                'data' => $petition,
+                'message' => 'Petición recuperada con éxito'
+            ]);
         } catch (\Exception $e) {
             return $this->sendError('Petición no encontrada', [], 404);
         }
     }
 
+
     public function update(Request $request, $id)
     {
         try {
-            $peticion = Petition::findOrFail($id);
+            $petition = Petition::findOrFail($id);
 
-            if ($request->user()->cannot('update', $peticion)) {
+            if ($request->user()->cannot('update', $petition)) {
                 return $this->sendError('No autorizado', [], 403);
             }
 
-            $peticion->update($request->all());
-            return $this->sendResponse($peticion, 'Petición actualizada con éxito');
-        } catch (\Exception $e) {
-            return $this->sendError('Error al actualizar', $e->getMessage(), 500);
-        }
+            $validated = $request->validate([
+                'title'       => 'required|string|max:255',
+                'description' => 'required|string',
+                'addressee'   => 'required|string|max:255',
+                'category_id' => 'required|integer|exists:categories,id',
+                'file'        => 'nullable|image|max:4096',
+            ]);
 
+            $petition->update([
+                'title'       => $validated['title'],
+                'description' => $validated['description'],
+                'addressee'   => $validated['addressee'],
+                'category_id' => $validated['category_id'],
+            ]);
+
+            // 📷 Reemplaza imagen
+            if ($request->hasFile('file')) {
+
+                // ❌ Borra imagen anterior (opcional pero recomendable)
+                $petition->files()->delete();
+
+                $uploaded = $request->file('file');
+                $path = $uploaded->store('fotos', 'public');
+
+                $petition->files()->create([
+                    'name'      => $uploaded->getClientOriginalName(),
+                    'file_path' => $path,
+                ]);
+            }
+
+            return $this->sendResponse(
+                $petition->load(['files', 'category', 'user']),
+                'Petición actualizada con éxito'
+            );
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Datos inválidos',
+                'errors'  => $e->errors(),
+            ], 422);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar petición', [
+                'petition_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->sendError(
+                'Error al actualizar la petición',
+                $e->getMessage(),
+                500
+            );
+        }
     }
 
     public function cambiarEstado(Request $request, $id)
@@ -148,7 +200,6 @@ class PetitionController extends Controller
         $peticion->save();
         return $peticion;
     }
-
 
     public function destroy(Request $request, $id)
     {
