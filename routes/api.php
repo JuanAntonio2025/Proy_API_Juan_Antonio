@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PetitionController;
@@ -24,10 +25,13 @@ Route::get('peticiones/{id}', [PetitionController::class,'show']);
 
 Route::middleware('auth:api')->group(function () {
     Route::get('mispeticiones', [PetitionController::class, 'listmine']);
+    Route::get('misfirmas', [PetitionController::class, 'peticionesFirmadas']);
     Route::delete('peticiones/{id}', [PetitionController::class,'destroy']);
     Route::put('peticiones/firmar/{id}', [PetitionController::class,'firmar']);
     Route::put('peticiones/{id}', [PetitionController::class,'update']);
     Route::put('peticiones/estado/{id}', [PetitionController::class,'cambiarEstado']);
     Route::post('peticiones', [PetitionController::class,'store']);
 });
+
+Route::get('categorias', [CategoryController::class, 'index']);
 

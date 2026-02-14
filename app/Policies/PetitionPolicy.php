@@ -66,6 +66,6 @@ class PetitionPolicy
 
     public function firmar(User $user, Petition $petition)
     {
-        return $user->id != $petition->user_id;
+        return true;
     }
 }

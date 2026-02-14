@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
+    protected $policies = [
+        Petition::class => PetitionPolicy::class,
+    ];
+
     /**
      * Register any application services.
      */

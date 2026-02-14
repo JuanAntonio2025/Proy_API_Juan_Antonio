@@ -193,4 +193,16 @@ class PetitionController extends Controller
             return $this->sendError('Error al subir archivo', $e->getMessage(), 500);
         }
     }
+
+    public function peticionesFirmadas(Request $request)
+    {
+        $user = $request->user();
+        $petitions = $user->signedPetitions()->with(['files', 'category', 'user'])->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $petitions
+        ]);
+    }
+
 }
