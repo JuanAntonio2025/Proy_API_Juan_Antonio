@@ -69,30 +69,51 @@ class PetitionController extends Controller
             'description' => 'required',
             'addressee' => 'required',
             'category_id' => 'required|exists:categories,id',
-            'file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'files' => 'required|array|min:1',
+            'files.*' => 'file|mimes:jpg,jpeg,png,pdf,webp|max:4096',
         ]);
+
         if ($validator->fails()) {
             return $this->sendError('Error de validación', $validator->errors(), 422);
         }
+
         try {
-            if ($file = $request->file('file')) {
+
+            $peticion = new Petition($request->only([
+                'title',
+                'description',
+                'addressee',
+                'category_id'
+            ]));
+
+            $peticion->user_id = Auth::id();
+            $peticion->signatories = 0;
+            $peticion->status = 'pending';
+            $peticion->save();
+
+            // Guardar múltiples archivos
+            foreach ($request->file('files') as $file) {
+
                 $path = $file->store('fotos', 'public');
-                $peticion = new Petition($request->all());
-                $peticion->user_id = Auth::id();
-                $peticion->signatories = 0;
-                $peticion->status = 'pending';
-                $peticion->save();
+
                 $peticion->files()->create([
                     'name' => $file->getClientOriginalName(),
                     'file_path' => $path
                 ]);
-
-                return $this->sendResponse($peticion->load('files'), 'Petición creada con éxito', 201);
             }
 
-            return $this->sendError('El archivo es obligatorio', [], 422);
+            return $this->sendResponse(
+                $peticion->load('files'),
+                'Petición creada con éxito',
+                201
+            );
+
         } catch (\Exception $e) {
-            return $this->sendError('Error al crear la petición', $e->getMessage(), 500);
+            return $this->sendError(
+                'Error al crear la petición',
+                $e->getMessage(),
+                500
+            );
         }
     }
 
@@ -143,7 +164,8 @@ class PetitionController extends Controller
                 'description' => 'required|string',
                 'addressee'   => 'required|string|max:255',
                 'category_id' => 'required|integer|exists:categories,id',
-                'file'        => 'nullable|image|max:4096',
+                'files' => 'nullable|array',
+                'files.*' => 'image|max:4096',
             ]);
 
             $petition->update([
@@ -154,18 +176,16 @@ class PetitionController extends Controller
             ]);
 
             // Reemplaza imagen
-            if ($request->hasFile('file')) {
+            if ($request->hasFile('files')) {
+                foreach ($request->file('files') as $uploaded) {
 
-                // Borra imagen anterior
-                $petition->files()->delete();
+                    $path = $uploaded->store('fotos', 'public');
 
-                $uploaded = $request->file('file');
-                $path = $uploaded->store('fotos', 'public');
-
-                $petition->files()->create([
-                    'name'      => $uploaded->getClientOriginalName(),
-                    'file_path' => $path,
-                ]);
+                    $petition->files()->create([
+                        'name'      => $uploaded->getClientOriginalName(),
+                        'file_path' => $path,
+                    ]);
+                }
             }
 
             return $this->sendResponse(
