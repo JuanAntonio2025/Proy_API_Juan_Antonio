@@ -149,7 +149,6 @@ class PetitionController extends Controller
         }
     }
 
-
     public function update(Request $request, $id)
     {
         try {
@@ -177,11 +176,6 @@ class PetitionController extends Controller
                 'category_id' => $validated['category_id'],
             ]);
 
-            /*
-            |----------------------------------
-            | 🗑️ Eliminar imágenes seleccionadas
-            |----------------------------------
-            */
             if ($request->filled('deleted_files')) {
                 $filesToDelete = $petition->files()
                     ->whereIn('id', $request->deleted_files)
@@ -193,11 +187,6 @@ class PetitionController extends Controller
                 }
             }
 
-            /*
-            |----------------------------------
-            | 📤 Añadir nuevas imágenes
-            |----------------------------------
-            */
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $uploaded) {
 
