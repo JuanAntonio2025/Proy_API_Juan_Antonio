@@ -160,29 +160,51 @@ class PetitionController extends Controller
             }
 
             $validated = $request->validate([
-                'title'       => 'required|string|max:255',
+                'title' => 'required|string|max:255',
                 'description' => 'required|string',
-                'addressee'   => 'required|string|max:255',
+                'addressee' => 'required|string|max:255',
                 'category_id' => 'required|integer|exists:categories,id',
                 'files' => 'nullable|array',
                 'files.*' => 'image|max:4096',
+                'deleted_files' => 'nullable|array',
+                'deleted_files.*' => 'integer|exists:files,id',
             ]);
 
             $petition->update([
-                'title'       => $validated['title'],
+                'title' => $validated['title'],
                 'description' => $validated['description'],
-                'addressee'   => $validated['addressee'],
+                'addressee' => $validated['addressee'],
                 'category_id' => $validated['category_id'],
             ]);
 
-            // Reemplaza imagen
+            /*
+            |----------------------------------
+            | 🗑️ Eliminar imágenes seleccionadas
+            |----------------------------------
+            */
+            if ($request->filled('deleted_files')) {
+                $filesToDelete = $petition->files()
+                    ->whereIn('id', $request->deleted_files)
+                    ->get();
+
+                foreach ($filesToDelete as $file) {
+                    \Storage::disk('public')->delete($file->file_path);
+                    $file->delete();
+                }
+            }
+
+            /*
+            |----------------------------------
+            | 📤 Añadir nuevas imágenes
+            |----------------------------------
+            */
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $uploaded) {
 
                     $path = $uploaded->store('fotos', 'public');
 
                     $petition->files()->create([
-                        'name'      => $uploaded->getClientOriginalName(),
+                        'name' => $uploaded->getClientOriginalName(),
                         'file_path' => $path,
                     ]);
                 }
