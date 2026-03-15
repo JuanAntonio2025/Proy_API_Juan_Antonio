@@ -34,12 +34,33 @@ class PetitionController extends Controller
     public function index(Request $request)
     {
         try {
-            $peticiones = Petition::with(['user', 'category', 'files'])->get();
+            $query = Petition::with(['user', 'category', 'files']);
+
+            // Filtrar por categoría
+            if ($request->filled('category_id')) {
+                $query->where('category_id', $request->category_id);
+            }
+
+            // Filtrar por firmas
+            if ($request->filled('signatures')) {
+                if ($request->signatures === 'with') {
+                    $query->where('signatories', '>', 0);
+                } elseif ($request->signatures === 'without') {
+                    $query->where('signatories', '=', 0);
+                }
+            }
+
+            // Filtrar por nombre/título
+            if ($request->filled('name')) {
+                $query->where('title', 'like', '%' . $request->name . '%');
+            }
+
+            $peticiones = $query->get();
+
             return $this->sendResponse($peticiones, 'Peticiones recuperadas con éxito');
         } catch (\Exception $e) {
             return $this->sendError('Error al recuperar peticiones', $e->getMessage(), 500);
         }
-
     }
 
     public function list() {
