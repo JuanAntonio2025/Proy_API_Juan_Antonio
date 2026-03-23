@@ -42,7 +42,13 @@ Route::get('categorias', [CategoryController::class, 'index']);
 //Rutas admin
 Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
     Route::get('peticiones', [AdminPetitionController::class, 'index']);
+    Route::get('peticiones/meta', [AdminPetitionController::class, 'meta']);
+    Route::get('peticiones/{id}', [AdminPetitionController::class, 'show']);
+    Route::post('peticiones', [AdminPetitionController::class, 'store']);
+    Route::post('peticiones/{id}', [AdminPetitionController::class, 'update']);
+    Route::put('peticiones/{id}', [AdminPetitionController::class, 'update']);
     Route::delete('peticiones/{id}', [AdminPetitionController::class, 'destroy']);
+    Route::delete('peticiones/file/{fileId}', [AdminPetitionController::class, 'destroyFile']);
 
     Route::get('usuarios', [AdminUserController::class, 'index']);
     Route::delete('usuarios/{id}', [AdminUserController::class, 'destroy']);
