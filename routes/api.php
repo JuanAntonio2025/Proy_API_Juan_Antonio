@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\AdminCategoryController;
+use App\Http\Controllers\AdminPetitionController;
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -35,4 +38,18 @@ Route::middleware('auth:api')->group(function () {
 });
 
 Route::get('categorias', [CategoryController::class, 'index']);
+
+//Rutas admin
+Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
+    Route::get('peticiones', [AdminPetitionController::class, 'index']);
+    Route::delete('peticiones/{id}', [AdminPetitionController::class, 'destroy']);
+
+    Route::get('usuarios', [AdminUserController::class, 'index']);
+    Route::delete('usuarios/{id}', [AdminUserController::class, 'destroy']);
+
+    Route::get('categorias', [AdminCategoryController::class, 'index']);
+    Route::post('categorias', [AdminCategoryController::class, 'store']);
+    Route::put('categorias/{id}', [AdminCategoryController::class, 'update']);
+    Route::delete('categorias/{id}', [AdminCategoryController::class, 'destroy']);
+});
 
