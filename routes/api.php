@@ -58,7 +58,9 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
     Route::delete('usuarios/{id}', [AdminUserController::class, 'destroy']);
 
     Route::get('categorias', [AdminCategoryController::class, 'index']);
+    Route::get('categorias/{id}', [AdminCategoryController::class, 'show']);
     Route::post('categorias', [AdminCategoryController::class, 'store']);
+    Route::post('categorias/{id}', [AdminCategoryController::class, 'update']);
     Route::put('categorias/{id}', [AdminCategoryController::class, 'update']);
     Route::delete('categorias/{id}', [AdminCategoryController::class, 'destroy']);
 });
