@@ -51,6 +51,10 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
     Route::delete('peticiones/file/{fileId}', [AdminPetitionController::class, 'destroyFile']);
 
     Route::get('usuarios', [AdminUserController::class, 'index']);
+    Route::get('usuarios/{id}', [AdminUserController::class, 'show']);
+    Route::post('usuarios', [AdminUserController::class, 'store']);
+    Route::post('usuarios/{id}', [AdminUserController::class, 'update']);
+    Route::put('usuarios/{id}', [AdminUserController::class, 'update']);
     Route::delete('usuarios/{id}', [AdminUserController::class, 'destroy']);
 
     Route::get('categorias', [AdminCategoryController::class, 'index']);
